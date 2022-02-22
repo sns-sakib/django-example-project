@@ -1,0 +1,100 @@
+from re import template
+from select import select
+from statistics import mode
+from time import timezone
+from django.shortcuts import redirect, render, get_object_or_404
+from django.utils import timezone
+
+from django.urls import reverse_lazy
+from django.views.generic import (TemplateView,
+ListView, 
+CreateView,
+DetailView,
+UpdateView,
+DeleteView)
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import login_required
+from blog_app.models import Post, Comment
+from blog_app.forms import CommentForm, PostForm
+# Create your views here.
+
+
+class AboutView(TemplateView):
+    template_name = 'about.html'
+
+class PostListView(ListView):
+    model = Post
+
+    def get_queryset(self):
+        return Post.objects.filter(published_date__lte=timezone.now()).order_by('-published_date')
+
+class PostDetailView(DetailView):
+    model = Post
+
+class CreatePostView(LoginRequiredMixin, CreateView):
+    login_url = '/login/'
+    redirect_field_name = 'blog_app/post_detail.html'
+    form_class = PostForm
+    model = Post
+
+class UpdatePostView(LoginRequiredMixin, UpdateView):
+    login_url = '/login/'
+    redirect_field_name = 'blog_app/post_detail.html'
+    form_class = PostForm
+    model = Post
+
+class DeletePostView(LoginRequiredMixin, DeleteView):
+    model = Post
+    success_url = reverse_lazy('postList')
+
+class draftListView(LoginRequiredMixin, ListView):
+    login_url = '/login/'
+    template_name='blog_app/post_draft_list.html'
+    context_object_name = 'posts'
+    #redirect_field_name = 'blog_app/post_draft_list.html'
+    model = Post
+
+    def get_queryset(self):
+        return Post.objects.filter(published_date__isnull = True).order_by('create_date')
+
+
+
+#################
+
+@login_required
+def post_publish_view(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    post.publish()
+    return redirect('detail_post', pk=pk)
+
+#@login_required
+def add_comment_to_post(request, pk):
+    post = get_object_or_404(Post, pk = pk)
+    if request.method == 'POST':
+        form = CommentForm(request.POST)
+        if form.is_valid() :
+            comment = form.save(commit = False)
+            comment.post = post
+            comment.save()
+            return redirect('detail_post', pk = pk)
+    else:
+        form = CommentForm()
+
+        return render(request, 'blog_app/comment_form.html', {'form' : form})
+
+
+@login_required
+def comment_approve(request, pk):
+    comment = get_object_or_404(Comment, pk = pk)
+    comment.approve()
+    return redirect('detail_post', pk = comment.post.pk)
+
+@login_required
+def comment_delete_view(request, pk):
+    comment = get_object_or_404(Comment, pk = pk)
+    post_pk = comment.post.pk
+    comment.delete()
+    return redirect('detail_post', pk=post_pk)
+
+
+

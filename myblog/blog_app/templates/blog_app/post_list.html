@@ -1,0 +1,22 @@
+{% extends 'blog_app/base.html' %}
+
+{% block content %}
+<div class="centerstage">
+
+
+    {% for post in post_list %}
+        <div class="post">
+
+            <h1><a href="{% url 'detail_post' pk=post.pk %}">{{ post.title }}</a></h1>
+            <div class="date">
+                <p>Published on: {{ post.published_date|date:"D M Y"}}</p>
+            </div>
+            <a href="{% url 'detail_post' pk=post.pk %}">Comments: {{ post.approve_comment.count }}</a>
+        </div>
+        {% empty %}
+        <div class="post">
+        <h2>No Drafts to review! Write a new Post <a href="{% url 'create_post' %}"> <span class='glyphicon glyphicon-pencil' ></span> <span>New Post </span></a></h2>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends 'blog_app/base.html' %}
+
+{% block content %}
+
+    {% for post in posts %}
+    
+        <div class="post">
+        
+            <p class="date">created:{{ post.created_date|date:'d-m-Y' }}</p>
+            <h1><a href="{% url 'detail_post' pk=post.pk %}">{{ post.title }}</a></h1>
+            <p>{{ post.text|truncatechars:200|safe }}</p>
+        </div>
+        {% empty %}
+        <div class="post">
+        <h2>(Draft Page)No Drafts to review! Write a new Post <a class='glyphicon glyphicon-pencil' href="{% url 'create_post' %}">New Post</a></h2>
+        </div>
+     {% endfor %}
+{% endblock %}
