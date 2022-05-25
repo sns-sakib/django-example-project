@@ -1,2 +1,5 @@
-# django-example-project
-django example project for learning purpose
+# django-myBlog-project
+technologies used:
+Django
+SQL Lite
+Bootstrap
